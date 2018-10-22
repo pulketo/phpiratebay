@@ -1,0 +1,19 @@
+{
+    "name": "pulketo/phpiratebay",
+    "description": "A Pirate Bay PHP client",
+    "type": "project",
+    "require": {
+        "sunra/php-simple-html-dom-parser": "^1.5"
+    },
+    "require-dev": {
+        "nategood/commando": "^0.3.0",
+        "sunra/php-simple-html-dom-parser": "^1.5"        
+    },
+    "license": "GPL v3",
+    "authors": [
+        {
+            "name": "pulketo",
+            "email": "pulketo@gmail.com"
+        }
+    ]
+}
