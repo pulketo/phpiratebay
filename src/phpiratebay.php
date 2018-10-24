@@ -110,7 +110,6 @@
 		}
 		public function getSearchUrl(){
 			$o = "http://$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
-//			$o = "/tmp/oo.html";
 			return $o;
 		}
 
@@ -144,6 +143,7 @@
 				$dom3 = pQuery::parseStr($trcontent->html());
 			//		$a = $dom3->query('.detLink');echo $a->attr('href').PHP_EOL;
 				$td = $dom3->query('td');
+				$n=array();
 				foreach($td as $k=>$tdc){
 					switch($k){
 						case 0:
@@ -160,9 +160,10 @@
 							break;
 					}
 				}
-				$o[]=$n;
+				if(isset($n['href']))
+					$out[] = $n;
 			}
-			return $o;
+		return $out;
 		}
 
 
@@ -184,6 +185,6 @@
 	$pb->searchFor("android");
 	$pb->searchInCategory("video");
 	$pb->orderBy("date","desc");
-	$pb->getPBlinks();
-	
+	$out = $pb->getPBlinks();
+	print_r($out);
 	
