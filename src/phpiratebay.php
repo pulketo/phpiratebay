@@ -129,7 +129,7 @@
 		}
 
 		public function getPBLinks($f){
-			require __DIR__ ."/vendor/autoload.php";
+			require __DIR__ ."../vendor/autoload.php";
 			//	$dom = new Sunra\PhpSimple\HtmlDomParser();
 			//	$dom = new PHPHtmlParser\Dom();
 			$dom = pQuery::parseStr($f);
