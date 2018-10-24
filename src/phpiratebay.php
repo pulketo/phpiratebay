@@ -109,13 +109,15 @@
 			return true;
 		}
 		public function getSearchUrl(){
-			$o = "$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
+			$o = "http://$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
+//			$o = "/tmp/oo.html";
 			return $o;
 		}
 
 		public function doSearchUrl(){
 			$url = $this->getSearchUrl();
-			return $this->curl_get_contents($url);
+//			return $this->curl_get_contents($url);
+			return file_get_contents($url);
 		}
 
 		public function setProxy($proxy){
@@ -125,6 +127,44 @@
 				$this->curlProxy = $proxy;
 			}	
 		}
+
+		public function getPBLinks($f){
+			require __DIR__ ."/vendor/autoload.php";
+			//	$dom = new Sunra\PhpSimple\HtmlDomParser();
+			//	$dom = new PHPHtmlParser\Dom();
+			$dom = pQuery::parseStr($f);
+			$o = $dom->query('#searchResults')->tagName('tbody');
+			//	echo $o->html();
+			
+			$dom2 = pQuery::parseStr($o->html());
+			$o2 =$dom2->query('tr'); 	
+			foreach ($o2 as $trcontent) {
+			    // echo "---------------------".PHP_EOL.$trcontent->html().PHP_EOL;
+				$dom3 = pQuery::parseStr($trcontent->html());
+			//		$a = $dom3->query('.detLink');echo $a->attr('href').PHP_EOL;
+				$td = $dom3->query('td');
+				foreach($td as $k=>$tdc){
+					switch($k){
+						case 0:
+							break;
+						case 1:
+							$n['href'] = $tdc->query('.detLink')->attr('href');
+							$n['html'] = $tdc->query('.detLink')->html();
+							break;
+						case 2:
+							$n['seeders'] = $tdc->html();
+							break;
+						case 3:
+							$n['leechers'] = $tdc->html();
+							break;
+					}
+				}
+				print_r($n);
+			}
+		}
+
+
+		
 	}
 	/////////////////////////
 
@@ -138,9 +178,10 @@
 	// print_r($pb->list);
 //	$pb->setProxy("socks5://localhost:9999"); //not working ??
 //	$pb->setProxy("http://127.0.0.1:9999"); //not working ??
-	$pb->searchFor("empire strikes back");
+//	$pb->searchFor("empire strikes back");
+	$pb->searchFor("android");
 	$pb->searchInCategory("video");
 	$pb->orderBy("date","desc");
-	echo $pb->doSearchUrl();
+	$pb->getPBlinks($pb->doSearchUrl());
 	
 	
