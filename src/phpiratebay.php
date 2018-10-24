@@ -128,8 +128,9 @@
 			}	
 		}
 
-		public function getPBLinks($f){
-			require __DIR__ ."../vendor/autoload.php";
+		public function getPBLinks(){
+			$f = $this->doSearchUrl();
+			require __DIR__ ."/../vendor/autoload.php";
 			//	$dom = new Sunra\PhpSimple\HtmlDomParser();
 			//	$dom = new PHPHtmlParser\Dom();
 			$dom = pQuery::parseStr($f);
@@ -159,8 +160,9 @@
 							break;
 					}
 				}
-				print_r($n);
+				$o[]=$n;
 			}
+			return $o;
 		}
 
 
@@ -182,6 +184,6 @@
 	$pb->searchFor("android");
 	$pb->searchInCategory("video");
 	$pb->orderBy("date","desc");
-	$pb->getPBlinks($pb->doSearchUrl());
+	$pb->getPBlinks();
 	
 	
