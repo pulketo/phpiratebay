@@ -108,12 +108,12 @@
 			}
 			return true;
 		}
-		public function getSearchUrl(){
+		private function getSearchUrl(){
 			$o = "http://$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
 			return $o;
 		}
 
-		public function doSearchUrl(){
+		private function doSearchUrl(){
 			$url = $this->getSearchUrl();
 //			return $this->curl_get_contents($url);
 			return file_get_contents($url);
@@ -130,18 +130,12 @@
 		public function getPBLinks(){
 			$f = $this->doSearchUrl();
 			require __DIR__ ."/../vendor/autoload.php";
-			//	$dom = new Sunra\PhpSimple\HtmlDomParser();
-			//	$dom = new PHPHtmlParser\Dom();
 			$dom = pQuery::parseStr($f);
 			$o = $dom->query('#searchResults')->tagName('tbody');
-			//	echo $o->html();
-			
 			$dom2 = pQuery::parseStr($o->html());
 			$o2 =$dom2->query('tr'); 	
 			foreach ($o2 as $trcontent) {
-			    // echo "---------------------".PHP_EOL.$trcontent->html().PHP_EOL;
 				$dom3 = pQuery::parseStr($trcontent->html());
-			//		$a = $dom3->query('.detLink');echo $a->attr('href').PHP_EOL;
 				$td = $dom3->query('td');
 				$n=array();
 				foreach($td as $k=>$tdc){
@@ -165,11 +159,7 @@
 			}
 		return $out;
 		}
-
-
-		
 	}
-	/////////////////////////
 
 	// require __DIR__ ."/../vendor/autoload.php";
 	//	$opts = new Commando\Command();
