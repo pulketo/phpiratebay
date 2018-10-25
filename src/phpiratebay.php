@@ -110,6 +110,7 @@
 		}
 		private function getSearchUrl(){
 			$o = "http://$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
+			$o = "/tmp/oo.html";
 			return $o;
 		}
 
@@ -118,6 +119,15 @@
 //			return $this->curl_get_contents($url);
 			return file_get_contents($url);
 		}
+
+		public function getTorrentDetails($pbtorrent){
+			$pbtorrent = ltrim($pbtorrent,"/ ");
+			$o = "http://$this->theMirror/$pbtorrent";
+			$f = file_get_contents($o);
+			return getTorrentInfo($f);
+		}
+		
+
 
 		public function setProxy($proxy){
 			if($proxy==null){
@@ -129,7 +139,7 @@
 
 		public function getPBLinks(){
 			$f = $this->doSearchUrl();
-			require __DIR__ ."/../vendor/autoload.php";
+			require_once __DIR__ ."/../vendor/autoload.php";
 			$dom = pQuery::parseStr($f);
 			$o = $dom->query('#searchResults')->tagName('tbody');
 			$dom2 = pQuery::parseStr($o->html());
@@ -159,6 +169,77 @@
 			}
 		return $out;
 		}
+
+		function arrLinearToPair($arr=array()){
+			if (sizeOf($arr) > 0 && (sizeOf($arr)%2) == 0 ){
+				
+			}else{
+				return false;
+			}
+		}
+		
+		public function getTorrentInfo($f){
+			require_once __DIR__ ."/../vendor/autoload.php";
+			$page = pQuery::parseStr($f);
+			$o = $page->query('#detailsframe');
+			$details = pQuery::parseStr($o->html());
+			$title = trim($details->query('#title')->html());
+			{ //get col1 info 
+				$ddtmp=array();
+				$detailsCol = trim($details->query('.col1')->html());
+				//i don't know how to iterate on different tags so... i will change dt to dd...
+				$detailsCol = str_ireplace("dt>", "dd>", $detailsCol);
+				$detailsColDOM = pQuery::parseStr($detailsCol);
+				$ddQ = $detailsColDOM->query('dd'); 	
+				foreach ($ddQ as $k=>$dd) {
+					$ddtmp[] = trim(strip_tags($dd->html()));
+				}
+				$details1 = $this->serialToCombined($ddtmp);
+//				print_r($details1);				
+			}
+			{ //get col2 info 
+				$ddtmp=array();
+				$detailsCol = trim($details->query('.col2')->html());
+				//i don't know how to iterate on different tags so... i will change dt to dd...
+				$detailsCol = str_ireplace("dt>", "dd>", $detailsCol);
+				$detailsColDOM = pQuery::parseStr($detailsCol);
+				$ddQ = $detailsColDOM->query('dd'); 	
+				foreach ($ddQ as $k=>$dd) {
+					$ddtmp[] = trim(strip_tags($dd->html()));
+				}
+				$details2 = $this->serialToCombined($ddtmp);
+//				print_r($details2);
+			}
+			{ // get magnet info
+				$magnet = trim($details->query('.download a')->attr('href'));
+				$details3 ['magnet'] = $magnet;
+//				print_r($details3);
+			}
+			
+			{ // get extra nfo (images)
+				$nfo = $details->query('.nfo a');
+				foreach($nfo as $k=>$v){
+					$NFO[$v->attr('href')] = trim($v->html());
+				}
+				$details4['NFO'] = $NFO;
+//				print_r($NFO);
+			}
+			$allDetails = array_merge($details1, $details2, $details3, $details4);
+//			print_r($allDetails);
+			return $allDetails;
+		}
+
+		private function serialToCombined($arr=array()){
+			if ( sizeOf($arr)>0 && sizeOf($arr)%2 == 0 ){
+				while(sizeOf($arr)>0){
+					$k[] = array_shift($arr);
+					$v[] = array_shift($arr);
+				}
+				return array_combine($k,$v);
+			}else{
+				return false;
+			}
+		}
 	}
 
 	// require __DIR__ ."/../vendor/autoload.php";
@@ -176,5 +257,6 @@
 	$pb->searchInCategory("video");
 	$pb->orderBy("date","desc");
 	$out = $pb->getPBlinks();
-	print_r($out);
+	$out2 = $pb->getTorrentInfo($out['29']['href']);
+	print_r($out2);
 	
