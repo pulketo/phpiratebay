@@ -46,11 +46,19 @@
 			curl_close($ch);
 			return $data;
 		}		
-		public function __construct($searchTerm=array(), $category="all", $orderBy="dateDesc", $page=0, $mirror = null ){
+		public function __construct($mirror = null, $searchTerm=null, $category="all", $orderBy="dateDesc", $page=0 ){
 			if ($mirror == null){
 				$tmp = $this->getProxyList()->proxies;
 				$this->theMirror = $tmp[RAND(0,sizeof($tmp))]->domain;
+			}else{
+				$errMirror = $this->setMirror($mirror);
 			}
+			
+		}
+
+		public function setMirror($mirror){
+			$this->theMirror = $mirror;
+			return true;
 		}
 
 		private function dbg($what){
@@ -110,7 +118,7 @@
 		}
 		private function getSearchUrl(){
 			$o = "http://$this->theMirror/search/$this->searchTerms/$this->searchPage/$this->order/$this->searchCategory";
-			$o = "/tmp/oo.html";
+			//$o = "/tmp/oo.html";
 			return $o;
 		}
 
@@ -119,15 +127,6 @@
 //			return $this->curl_get_contents($url);
 			return file_get_contents($url);
 		}
-
-		public function getTorrentDetails($pbtorrent){
-			$pbtorrent = ltrim($pbtorrent,"/ ");
-			$o = "http://$this->theMirror/$pbtorrent";
-			$f = file_get_contents($o);
-			return getTorrentInfo($f);
-		}
-		
-
 
 		public function setProxy($proxy){
 			if($proxy==null){
@@ -177,7 +176,14 @@
 				return false;
 			}
 		}
-		
+
+		public function getTorrentDetails($pbtorrent){
+			$pbtorrent = ltrim($pbtorrent,"/ ");
+			$o = "http://$this->theMirror/$pbtorrent";
+			$html = file_get_contents($o);
+			return $this->getTorrentInfo($html);
+		}
+				
 		public function getTorrentInfo($f){
 			require_once __DIR__ ."/../vendor/autoload.php";
 			$page = pQuery::parseStr($f);
@@ -195,7 +201,7 @@
 					$ddtmp[] = trim(strip_tags($dd->html()));
 				}
 				$details1 = $this->serialToCombined($ddtmp);
-//				print_r($details1);				
+//				echo "details1:";print_r($details1);				
 			}
 			{ //get col2 info 
 				$ddtmp=array();
@@ -208,12 +214,12 @@
 					$ddtmp[] = trim(strip_tags($dd->html()));
 				}
 				$details2 = $this->serialToCombined($ddtmp);
-//				print_r($details2);
+//				echo "details2:";print_r($details2);
 			}
 			{ // get magnet info
 				$magnet = trim($details->query('.download a')->attr('href'));
 				$details3 ['magnet'] = $magnet;
-//				print_r($details3);
+//				echo "details3:";print_r($details3);
 			}
 			
 			{ // get extra nfo (images)
@@ -222,9 +228,9 @@
 					$NFO[$v->attr('href')] = trim($v->html());
 				}
 				$details4['NFO'] = $NFO;
-//				print_r($NFO);
+//				echo "details4:";print_r($details4);
 			}
-			$allDetails = array_merge($details1, $details2, $details3, $details4);
+			$allDetails = array_merge((array)$details1, (array)$details2, (array)$details3, (array)$details4);
 //			print_r($allDetails);
 			return $allDetails;
 		}
@@ -232,7 +238,8 @@
 		private function serialToCombined($arr=array()){
 			if ( sizeOf($arr)>0 && sizeOf($arr)%2 == 0 ){
 				while(sizeOf($arr)>0){
-					$k[] = array_shift($arr);
+					$tmp = array_shift($arr);
+					$k[] = preg_replace("/[^a-zA-Z0-9]+/", "", $tmp);
 					$v[] = array_shift($arr);
 				}
 				return array_combine($k,$v);
@@ -246,8 +253,9 @@
 	//	$opts = new Commando\Command();
 	//	$opts->option('m')->aka('man')->describedAs(MAN)->boolean()->defaultsTo(false);
 	//	$opts->option('e')->aka('engine')->describedAs('--engine <...> or -e <google|duckgo|searxme|playstore> or  -e <g|d|s|p>')->defaultsTo("s");
-	$pb = new phpiratebay();
-	// $pb->theMirror;
+	$pb = new phpiratebay('tpbproxyone.org');
+	// $pb = new phpiratebay();
+	// echo $pb->theMirror;
 	// echo $pb->getCategories();
 	// print_r($pb->list);
 //	$pb->setProxy("socks5://localhost:9999"); //not working ??
@@ -257,6 +265,7 @@
 	$pb->searchInCategory("video");
 	$pb->orderBy("date","desc");
 	$out = $pb->getPBlinks();
-	$out2 = $pb->getTorrentInfo($out['29']['href']);
+	print_r($out);
+	$out2 = $pb->getTorrentDetails($out['29']['href']);
 	print_r($out2);
 	
