@@ -67,8 +67,8 @@
 		}
 
 		private function getProxyList(){
-			// $o = file_get_contents("https://thepiratebay-proxylist.se/api/v1/proxies");
-			$o = file_get_contents("../proxies.json");
+			$o = file_get_contents("https://thepiratebay-proxylist.se/api/v1/proxies");
+			// $o = file_get_contents("../proxies.json");
 			$this->list = json_decode($o);
 			return $this->list;
 		}
@@ -181,12 +181,16 @@
 			$pbtorrent = ltrim($pbtorrent,"/ ");
 			$o = "http://$this->theMirror/$pbtorrent";
 			$html = file_get_contents($o);
-			return $this->getTorrentInfo($html);
+			return json_encode((array)$this->getTorrentInfo($html));
 		}
 				
 		public function getTorrentInfo($f){
 			require_once __DIR__ ."/../vendor/autoload.php";
 			$page = pQuery::parseStr($f);
+
+			$details0['mirror'] = $this->theMirror;
+//			$details0['source'] = ;
+			
 			$o = $page->query('#detailsframe');
 			$details = pQuery::parseStr($o->html());
 			$title = trim($details->query('#title')->html());
@@ -230,7 +234,7 @@
 				$details4['NFO'] = $NFO;
 //				echo "details4:";print_r($details4);
 			}
-			$allDetails = array_merge((array)$details1, (array)$details2, (array)$details3, (array)$details4);
+			$allDetails = array_merge((array)$details0, (array)$details1, (array)$details2, (array)$details3, (array)$details4);
 //			print_r($allDetails);
 			return $allDetails;
 		}
@@ -248,24 +252,3 @@
 			}
 		}
 	}
-
-	// require __DIR__ ."/../vendor/autoload.php";
-	//	$opts = new Commando\Command();
-	//	$opts->option('m')->aka('man')->describedAs(MAN)->boolean()->defaultsTo(false);
-	//	$opts->option('e')->aka('engine')->describedAs('--engine <...> or -e <google|duckgo|searxme|playstore> or  -e <g|d|s|p>')->defaultsTo("s");
-	$pb = new phpiratebay('tpbproxyone.org');
-	// $pb = new phpiratebay();
-	// echo $pb->theMirror;
-	// echo $pb->getCategories();
-	// print_r($pb->list);
-//	$pb->setProxy("socks5://localhost:9999"); //not working ??
-//	$pb->setProxy("http://127.0.0.1:9999"); //not working ??
-//	$pb->searchFor("empire strikes back");
-	$pb->searchFor("android");
-	$pb->searchInCategory("video");
-	$pb->orderBy("date","desc");
-	$out = $pb->getPBlinks();
-	print_r($out);
-	$out2 = $pb->getTorrentDetails($out['29']['href']);
-	print_r($out2);
-	
